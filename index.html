@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundness Proof Highlights Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-neon: #00d4ff;
+            --secondary-neon: #ff006e;
+            --tertiary-neon: #8338ec;
+            --glow-cyan: rgba(0, 212, 255, 0.3);
+            --glow-purple: rgba(131, 56, 236, 0.3);
+            --bg-dark: #0a0e27;
+            --bg-darker: #050812;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b8d4;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--bg-darker) 0%, #1a1f3a 100%);
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(131, 56, 236, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        header {
+            background: rgba(10, 14, 39, 0.8);
+            border-bottom: 2px solid var(--primary-neon);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        header h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            background: linear-gradient(90deg, var(--primary-neon), var(--tertiary-neon), var(--primary-neon));
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            animation: ledGlow 3s ease-in-out infinite;
+        }
+
+        @keyframes ledGlow {
+            0% {
+                background-position: 0% center;
+                text-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.3);
+            }
+            50% {
+                background-position: 100% center;
+                text-shadow: 0 0 20px rgba(0, 212, 255, 0.8), 0 0 40px rgba(131, 56, 236, 0.5);
+            }
+            100% {
+                background-position: 200% center;
+                text-shadow: 0 0 10px rgba(0, 212, 255, 0.5), 0 0 20px rgba(0, 212, 255, 0.3);
+            }
+        }
+
+        .clock {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-neon);
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.8);
+            letter-spacing: 2px;
+        }
+
+        main {
+            max-width: 1400px;
+            margin: 60px auto;
+            padding: 0 20px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .card {
+            background: rgba(20, 30, 60, 0.6);
+            border: 2px solid;
+            border-radius: 15px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 212, 255, 0.2);
+        }
+
+        .card.wava {
+            border-color: #00d4ff;
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1), 0 0 15px rgba(0, 212, 255, 0.2);
+        }
+
+        .card.blu {
+            border-color: #0099ff;
+            box-shadow: inset 0 0 20px rgba(0, 153, 255, 0.1), 0 0 15px rgba(0, 153, 255, 0.2);
+        }
+
+        .card.bloop {
+            border-color: #ff00ff;
+            box-shadow: inset 0 0 20px rgba(255, 0, 255, 0.1), 0 0 15px rgba(255, 0, 255, 0.2);
+        }
+
+        .card.zippy {
+            border-color: #ffff00;
+            box-shadow: inset 0 0 20px rgba(255, 255, 0, 0.1), 0 0 15px rgba(255, 255, 0, 0.2);
+        }
+
+        .card.echo {
+            border-color: #ff6600;
+            box-shadow: inset 0 0 20px rgba(255, 102, 0, 0.1), 0 0 15px rgba(255, 102, 0, 0.2);
+        }
+
+        .role {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .emoji {
+            font-size: 48px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .card.wava .emoji { animation-delay: 0s; }
+        .card.blu .emoji { animation-delay: 0.2s; }
+        .card.bloop .emoji { animation-delay: 0.4s; }
+        .card.zippy .emoji { animation-delay: 0.6s; }
+        .card.echo .emoji { animation-delay: 0.8s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .role h2 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .proof {
+            font-size: 16px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .proof span {
+            color: var(--primary-neon);
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .card.wava .proof span { color: #00d4ff; }
+        .card.blu .proof span { color: #0099ff; }
+        .card.bloop .proof span { color: #ff00ff; }
+        .card.zippy .proof span { color: #ffff00; }
+        .card.echo .proof span { color: #ff6600; }
+
+        .activity-bar {
+            width: 100%;
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+        }
+
+        .fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-neon), var(--tertiary-neon));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .card.wava .fill { background: linear-gradient(90deg, #00d4ff, #0099ff); box-shadow: 0 0 10px rgba(0, 212, 255, 0.7); }
+        .card.blu .fill { background: linear-gradient(90deg, #0099ff, #0066ff); box-shadow: 0 0 10px rgba(0, 153, 255, 0.7); }
+        .card.bloop .fill { background: linear-gradient(90deg, #ff00ff, #ff0099); box-shadow: 0 0 10px rgba(255, 0, 255, 0.7); }
+        .card.zippy .fill { background: linear-gradient(90deg, #ffff00, #ffcc00); box-shadow: 0 0 10px rgba(255, 255, 0, 0.7); }
+        .card.echo .fill { background: linear-gradient(90deg, #ff6600, #ff3300); box-shadow: 0 0 10px rgba(255, 102, 0, 0.7); }
+
+        .stats {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-neon);
+            margin-bottom: 5px;
+        }
+
+        footer {
+            background: rgba(10, 14, 39, 0.8);
+            border-top: 2px solid var(--primary-neon);
+            padding: 30px 40px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 14px;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            backdrop-filter: blur(10px);
+            margin-top: 60px;
+        }
+
+        footer p {
+            font-family: 'JetBrains Mono', monospace;
+            letter-spacing: 1px;
+        }
+
+        footer .symbol {
+            color: var(--primary-neon);
+            font-weight: 700;
+            margin: 0 5px;
+        }
+
+        .sync-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: var(--primary-neon);
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px 20px;
+            }
+
+            header h1 {
+                font-size: 22px;
+                letter-spacing: 2px;
+            }
+
+            .clock {
+                font-size: 16px;
+            }
+
+            main {
+                margin: 40px auto;
+                padding: 0 15px;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .card {
+                padding: 20px;
+            }
+
+            .emoji {
+                font-size: 40px;
+            }
+
+            .role h2 {
+                font-size: 20px;
+            }
+
+            footer {
+                padding: 20px 15px;
+                font-size: 12px;
+            }
+        }
+
+        .upcoming-section {
+            background: rgba(20, 30, 60, 0.6);
+            border: 2px solid var(--primary-neon);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 60px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .upcoming-section h3 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            color: var(--primary-neon);
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .schedule-item {
+            background: rgba(10, 14, 39, 0.8);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .schedule-item:hover {
+            border-color: var(--primary-neon);
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+            transform: translateY(-5px);
+        }
+
+        .schedule-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .schedule-role {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .schedule-item.current {
+            border-color: #ffff00;
+            background: rgba(255, 255, 0, 0.1);
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.3);
+        }
+
+        .schedule-item.current .schedule-role {
+            color: #ffff00;
+        }
+
+        .schedule-item.zippy .schedule-role { color: #ffff00; }
+        .schedule-item.bloop .schedule-role { color: #ff00ff; }
+        .schedule-item.blu .schedule-role { color: #0099ff; }
+        .schedule-item.wava .schedule-role { color: #00d4ff; }
+        .schedule-item.echo .schedule-role { color: #ff6600; }
+
+        
+
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 18px;
+                letter-spacing: 1px;
+            }
+
+            .clock {
+                font-size: 14px;
+            }
+
+            .cards-grid {
+                gap: 15px;
+            }
+
+            .emoji {
+                font-size: 36px;
+            }
+
+            .role h2 {
+                font-size: 18px;
+                letter-spacing: 1px;
+            }
+
+            .upcoming-section {
+                padding: 20px;
+            }
+
+            .schedule-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 10px;
+            }
+
+            
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>◆ SOUNDNESS PROOF HIGHLIGHTS ◆</h1>
+        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+            <div class="clock" id="clock">00:00:00</div>
+            <div style="font-size: 14px; color: #ff6600; font-weight: 600; letter-spacing: 1px;">Today's Role: <span style="color: #ffff00;">ECHO</span> | <span id="today-date" style="color: #00d4ff;">-</span></div>
+        </div>
+    </header>
+
+    <main>
+        <div class="upcoming-section">
+            <h3>UPCOMING SCHEDULE</h3>
+            <div class="schedule-grid" id="scheduleGrid"></div>
+        </div>
+
+        <div class="cards-grid">
+            <!-- WAVA CARD -->
+            <div class="card wava">
+                <div class="role">
+                    <span class="emoji">🌊</span>
+                    <h2>WAVA</h2>
+                </div>
+                <p class="proof">Proofs: <span id="wava-count">0</span></p>
+                <div class="activity-bar">
+                    <div class="fill" id="wava-bar"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Intensity</div>
+                        <div class="stat-value" id="wava-intensity">0%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="wava-status">IDLE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLU CARD -->
+            <div class="card blu">
+                <div class="role">
+                    <span class="emoji">💙</span>
+                    <h2>BLU</h2>
+                </div>
+                <p class="proof">Proofs: <span id="blu-count">0</span></p>
+                <div class="activity-bar">
+                    <div class="fill" id="blu-bar"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Intensity</div>
+                        <div class="stat-value" id="blu-intensity">0%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="blu-status">IDLE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BLOOP CARD -->
+            <div class="card bloop">
+                <div class="role">
+                    <span class="emoji">🫧</span>
+                    <h2>BLOOP</h2>
+                </div>
+                <p class="proof">Proofs: <span id="bloop-count">0</span></p>
+                <div class="activity-bar">
+                    <div class="fill" id="bloop-bar"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Intensity</div>
+                        <div class="stat-value" id="bloop-intensity">0%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="bloop-status">IDLE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ZIPPY CARD -->
+            <div class="card zippy">
+                <div class="role">
+                    <span class="emoji">🏎️</span>
+                    <h2>ZIPPY</h2>
+                </div>
+                <p class="proof">Proofs: <span id="zippy-count">0</span></p>
+                <div class="activity-bar">
+                    <div class="fill" id="zippy-bar"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Intensity</div>
+                        <div class="stat-value" id="zippy-intensity">0%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="zippy-status">IDLE</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ECHO CARD -->
+            <div class="card echo">
+                <div class="role">
+                    <span class="emoji">🐚</span>
+                    <h2>ECHO</h2>
+                </div>
+                <p class="proof">Proofs: <span id="echo-count">0</span></p>
+                <div class="activity-bar">
+                    <div class="fill" id="echo-bar"></div>
+                </div>
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Intensity</div>
+                        <div class="stat-value" id="echo-intensity">0%</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Status</div>
+                        <div class="stat-value" id="echo-status">IDLE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p><span class="sync-indicator"></span>Synced with zk-proof stream <span class="symbol">⧉</span> Real-time <a href="https://x.com/SoundnessLabs" target="_blank" style="color: #00d4ff; text-decoration: none; border-bottom: 1px solid #00d4ff;">Soundness Layer</a></p>
+    </footer>
+
+    <audio id="backgroundMusic" loop volume="0.3">
+        <source src="soundness-theme.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        // Dashboard Data Structure
+        const roles = {
+            wava: { name: 'WAVA', count: 0, intensity: 0, status: 'IDLE' },
+            blu: { name: 'BLU', count: 0, intensity: 0, status: 'IDLE' },
+            bloop: { name: 'BLOOP', count: 0, intensity: 0, status: 'IDLE' },
+            zippy: { name: 'ZIPPY', count: 0, intensity: 0, status: 'IDLE' },
+            echo: { name: 'ECHO', count: 0, intensity: 0, status: 'IDLE' }
+        };
+
+        // Date-based role mapping (continuous cycle)
+        const dateRoleMapping = {
+            1: 'zippy', 2: 'bloop', 3: 'blu', 4: 'wava', 5: 'echo', 6: 'zippy',
+            7: 'bloop', 8: 'blu', 9: 'wava', 10: 'echo', 11: 'zippy', 12: 'bloop',
+            13: 'blu', 14: 'wava', 15: 'echo', 16: 'zippy', 17: 'bloop', 18: 'blu',
+            19: 'echo', 20: 'zippy', 21: 'bloop', 22: 'blu', 23: 'wava', 24: 'echo',
+            25: 'zippy', 26: 'bloop', 27: 'blu', 28: 'wava', 29: 'echo', 30: 'zippy', 31: 'bloop'
+        };
+
+        // Get today's active role based on date
+        function getTodayActiveRole() {
+            const today = new Date().getDate();
+            return dateRoleMapping[today] || 'echo'; // Default to ECHO if date not in mapping
+        }
+
+        // Update header with today's active role and date
+        function updateTodayRole() {
+            const activeRole = getTodayActiveRole();
+            const roleNameMap = {
+                wava: 'WAVA',
+                blu: 'BLU',
+                bloop: 'BLOOP',
+                zippy: 'ZIPPY',
+                echo: 'ECHO'
+            };
+            const roleColorMap = {
+                wava: '#00d4ff',
+                blu: '#0099ff',
+                bloop: '#ff00ff',
+                zippy: '#ffff00',
+                echo: '#ff6600'
+            };
+            const todayRoleDiv = document.querySelector('div[style*="flex-direction: column"]');
+            if (todayRoleDiv) {
+                const roleSpan = todayRoleDiv.querySelector('span[style*="color"]');
+                if (roleSpan) {
+                    roleSpan.textContent = roleNameMap[activeRole];
+                    roleSpan.style.color = roleColorMap[activeRole];
+                }
+                const dateSpan = document.getElementById('today-date');
+                if (dateSpan) {
+                    const today = new Date();
+                    const formattedDate = today.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+                    dateSpan.textContent = formattedDate;
+                }
+            }
+        }
+
+        // Update Clock
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('clock').textContent = `${hours}:${minutes}:${seconds}`;
+        }
+
+        // Update UI for a role
+        function updateRoleUI(roleKey) {
+            const role = roles[roleKey];
+            const countElement = document.getElementById(`${roleKey}-count`);
+            const barElement = document.getElementById(`${roleKey}-bar`);
+            const intensityElement = document.getElementById(`${roleKey}-intensity`);
+            const statusElement = document.getElementById(`${roleKey}-status`);
+
+            if (countElement) countElement.textContent = role.count;
+            if (barElement) barElement.style.width = role.intensity + '%';
+            if (intensityElement) intensityElement.textContent = role.intensity + '%';
+            if (statusElement) statusElement.textContent = role.status;
+        }
+
+        // Simulate Real-time Activity
+        function simulateActivity() {
+            const activeRole = getTodayActiveRole();
+            
+            Object.keys(roles).forEach(roleKey => {
+                const randomEvent = Math.random();
+
+                if (roleKey === activeRole) {
+                    // Active role has more variation
+                    if (randomEvent < 0.4) {
+                        // Increase proof count
+                        roles[roleKey].count += Math.floor(Math.random() * 5) + 1;
+                        roles[roleKey].intensity = Math.min(100, roles[roleKey].intensity + Math.random() * 30);
+                        roles[roleKey].status = 'ACTIVE';
+                    } else if (randomEvent < 0.65) {
+                        // Decrease intensity
+                        roles[roleKey].intensity = Math.max(0, roles[roleKey].intensity - Math.random() * 20);
+                        if (roles[roleKey].intensity < 10) {
+                            roles[roleKey].status = 'PULSE';
+                        }
+                    } else if (randomEvent < 0.85) {
+                        // Pulse
+                        roles[roleKey].intensity = Math.max(0, roles[roleKey].intensity - Math.random() * 15);
+                        roles[roleKey].status = 'PULSE';
+                    } else {
+                        // Maintain active
+                        roles[roleKey].status = 'ACTIVE';
+                    }
+                } else {
+                    // Standby roles stay mostly in STANDBY with minimal changes
+                    if (randomEvent < 0.1) {
+                        roles[roleKey].intensity = Math.max(0, roles[roleKey].intensity - Math.random() * 5);
+                    }
+                    roles[roleKey].status = 'STANDBY';
+                }
+
+                // Round intensity to whole number
+                roles[roleKey].intensity = Math.round(roles[roleKey].intensity);
+
+                updateRoleUI(roleKey);
+            });
+        }
+
+        // Card Click Interaction
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('click', function() {
+                const roleKey = this.className.split(' ')[1];
+                if (roleKey && roles[roleKey]) {
+                    roles[roleKey].count += 10;
+                    roles[roleKey].intensity = Math.min(100, roles[roleKey].intensity + 25);
+                    roles[roleKey].status = 'BOOSTED';
+                    updateRoleUI(roleKey);
+
+                    setTimeout(() => {
+                        roles[roleKey].status = 'ACTIVE';
+                        updateRoleUI(roleKey);
+                    }, 500);
+                }
+            });
+        });
+
+        
+
+        // Generate upcoming schedule
+        function generateSchedule() {
+            const scheduleGrid = document.getElementById('scheduleGrid');
+            const today = new Date().getDate();
+            const roleNameMap = { wava: 'WAVA', blu: 'BLU', bloop: 'BLOOP', zippy: 'ZIPPY', echo: 'ECHO' };
+
+            // Generate schedule items for next 6 days from today
+            for (let i = 0; i < 6; i++) {
+                let date = today + i;
+                let role = dateRoleMapping[date] || 'echo';
+                const div = document.createElement('div');
+                div.className = `schedule-item ${role}${i === 0 ? ' current' : ''}`;
+                div.innerHTML = `
+                    <div class="schedule-date">Date ${date}</div>
+                    <div class="schedule-role">${roleNameMap[role]}</div>
+                `;
+                scheduleGrid.appendChild(div);
+            }
+        }
+
+        // Initialize
+        function init() {
+            updateClock();
+            updateTodayRole();
+            generateSchedule();
+            const activeRole = getTodayActiveRole();
+            
+            Object.keys(roles).forEach(roleKey => {
+                if (roleKey === activeRole) {
+                    // Active role for today
+                    roles[roleKey].count = Math.floor(Math.random() * 100) + 50;
+                    roles[roleKey].intensity = Math.floor(Math.random() * 60) + 20;
+                    roles[roleKey].status = 'ACTIVE';
+                } else {
+                    // Other roles in STANDBY
+                    roles[roleKey].count = Math.floor(Math.random() * 50) + 20;
+                    roles[roleKey].intensity = Math.floor(Math.random() * 30) + 5;
+                    roles[roleKey].status = 'STANDBY';
+                }
+                updateRoleUI(roleKey);
+            });
+        }
+
+        // Start Updates
+        setInterval(updateClock, 1000);
+        setInterval(simulateActivity, 2000);
+
+        // Music Control System
+        const backgroundMusic = document.getElementById('backgroundMusic');
+
+        // Set initial volume to 30%
+        backgroundMusic.volume = 0.3;
+
+        // Auto-play music when page loads
+        function startMusic() {
+            const playPromise = backgroundMusic.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('Music started');
+                }).catch(error => {
+                    console.log('Autoplay prevented:', error);
+                });
+            }
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            startMusic();
+        });
+    </script>
+</body>
+</html>
